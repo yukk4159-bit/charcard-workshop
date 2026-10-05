@@ -1,51 +1,52 @@
 # 角色卡工坊 · CharCard Workshop
 
-A [DeepSeek Harness](https://github.com/deepseek-ai) (DSH) agent preset **and** its skill
-set, for authoring SillyTavern character cards. It adds a fifth session mode,
-**角色卡工坊** (`rolecard`), next to the shipped 标准 / PTC / 极简 / 创造 modes.
+[English](README.en.md) | 中文
+
+一个 [DeepSeek Harness](https://github.com/deepseek-ai)（DSH）的 agent preset **及其**
+skill 集合，用于创作 SillyTavern 角色卡。它在官方内置的 标准 / PTC / 极简 / 创造
+四个 mode 之外，新增第五个 session mode：**角色卡工坊**（`rolecard`）。
 
 ```
 charcard-workshop/
-├─ cordis.patch.yml    the preset declaration and its routing contract
+├─ cordis.patch.yml    preset 声明与路由契约
 ├─ package.json        bundle manifest
-├─ skills/             23 skill bundles — data only, runs no code
-├─ NOTICE.md           provenance of every skill bundle
-└─ LICENSE             MIT (covers this repository, not the skill bodies)
+├─ skills/             23 个 skill bundle —— 纯数据，运行时不执行任何代码
+├─ NOTICE.md           每个 skill bundle 的来源
+└─ LICENSE             MIT（覆盖本仓库，不覆盖 skill 正文）
 ```
 
-## What the mode is
+## 这个 mode 是什么
 
-It composes a session from the shipped `standard` preset — identical terminal,
-filesystem, search, job, goal, plan-mode, compaction, delegation, workflow, web and todo
-surface — plus a persona that routes card work to the right skill. **No tools are added
-or removed**, so the mode is a lens rather than a different agent.
+它用官方 `standard` preset 组合出一个 session —— terminal、filesystem、search、job、
+goal、plan-mode、compaction、delegation、workflow、web、todo 这些工具面完全一致 ——
+再额外加一段 persona，把做卡的工作路由到对应的 skill。**不增加也不移除任何 tool**，
+所以它是一个 lens，而不是另一个 agent。
 
-Because the persona and its skill catalog are scoped to the preset, card context loads
-only in sessions that select 角色卡工坊. Every other session stays clean.
+因为 persona 和它带的 skill catalog 都限定在这个 preset 里，卡相关的 context
+**只会在选用「角色卡工坊」的 session 中加载**。其他 session 保持干净。
 
-| Piece | Value |
+| 项目 | 值 |
 |---|---|
 | Bundle package | `charcard-workshop` |
 | Preset id | `rolecard` |
-| Display name | 角色卡工坊 |
-| Roster order | 2 |
-| Base capability | shipped `standard` preset |
+| 显示名 | 角色卡工坊 |
+| 排序 | 2 |
+| 基础能力 | 官方 `standard` preset |
 
-## Install
+## 安装
 
-Requires a DSH profile.
+需要一个 DSH profile。
 
-**1. Install the bundle.** Point `install_bundle` at this directory's absolute path:
+**1. 安装 bundle。** 把 `install_bundle` 的 target 指向本目录的绝对路径：
 
 ```
-plugin_manager action=install_bundle target="<absolute path to this directory>"
+plugin_manager action=install_bundle target="<本目录的绝对路径>"
 ```
 
-**2. Install the skills so the mode's catalog is populated.** DSH's
-`dsh-skill-filesystem` scans `$DSH_HOME/skills` as its `user-dsh` root, and discovery is
-**exactly one level deep** — it recognizes `<root>/<name>/SKILL.md` but not a nested
-tree. So copy this repository's `skills/` *contents* into that root, not the repository
-itself:
+**2. 安装 skill，让这个 mode 的 catalog 有内容。** DSH 的 `dsh-skill-filesystem`
+把 `$DSH_HOME/skills` 作为它的 `user-dsh` root 来扫描，而发现深度**恰好只有一层** ——
+它识别 `<root>/<name>/SKILL.md`，但不识别嵌套目录树。所以要把本仓库 `skills/` 的
+**内容**复制进那个 root，而不是把仓库本身放进去：
 
 ```bash
 # bash
@@ -57,11 +58,11 @@ cp -r skills/* "$DSH_HOME/skills/"
 Copy-Item -Path ".\skills\*" -Destination "$env:DSH_HOME\skills" -Recurse -Force
 ```
 
-Cloning the repository *as a subdirectory* of `$DSH_HOME/skills` does not work — the
-extra nesting level hides every skill.
+把仓库**作为子目录**克隆到 `$DSH_HOME/skills` 下面是不行的 —— 多出来的那一层嵌套会让
+每个 skill 都发现不到。
 
-**Alternative:** keep a checkout in place and point the preset at it instead, by giving
-the `skill-filesystem` row a `customSkillDirs` entry in `cordis.patch.yml`:
+**替代做法：**保留一份 checkout，改为让 preset 指向它 —— 在 `cordis.patch.yml` 里给
+`skill-filesystem` 这一行加一个 `customSkillDirs`：
 
 ```yaml
 - id: skill-filesystem
@@ -71,87 +72,82 @@ the `skill-filesystem` row a `customSkillDirs` entry in `cordis.patch.yml`:
       - C:\path\to\charcard-workshop\skills
 ```
 
-Installing the skills is optional in the sense that the mode still composes without
-them — its catalog is just thinner.
+不装 skill 也能用：这个 mode 照样能组合出来，只是它的 catalog 会比较单薄。
 
-**3. Verify.** The mode appears in the session mode picker. Open a new session in it and
-confirm the card skills are listed in the catalog.
+**3. 验证。** 该 mode 会出现在 session 的 mode 选择器里。用它与新开一个 session，
+确认 catalog 里列出了这些做卡的 skill。
 
-## Two card frameworks, and why the distinction matters
+## 两套制卡框架，以及为什么必须区分
 
-`cordis.patch.yml` carries the routing contract. It separates two workflows that are
-**not** interchangeable, because they package cards through completely different
-machinery. Mixing them is the most likely way to get stuck.
+路由契约写在 `cordis.patch.yml` 里。它把两条**不可互换**的 workflow 分开，因为它们
+打包角色卡用的是完全不同的机制。把它们混用是最容易卡住的路径。
 
-### Framework A — content-first, self-contained project
+### 框架 A —— 内容优先、自足的 project
 
-For "从零做一张卡", "从小说改编", "改一下这张卡", "加个玩法 / MVU / 开场白".
+适用于「从零做一张卡」「从小说改编」「改一下这张卡」「加个玩法 / MVU / 开场白」。
 
 ```
-tavern-design                  → cards/{Project}/design-spec.md, then STOPS for confirmation
-tavern-cards                   → forge project: init → 创作规划.yaml → entries → MVU → EJS
-                                 → configure → first messages → UI
-tavern-ui                      → when the status bar is a frontend
+tavern-design                  → cards/{Project}/design-spec.md，然后停下等用户确认
+tavern-cards                   → forge project：init → 创作规划.yaml → 条目 → MVU → EJS
+                                 → configure → 开场白 → UI
+tavern-ui                      → 状态栏要做成 frontend 时
 ```
 
-Packaging belongs to `tavern-cards`, through its bundled offline CLI:
+打包属于 `tavern-cards`，用它自带的离线 CLI：
 
 ```
 node <skills>/tavern-cards/scripts/tavern-cards-forge.mjs pack {project}
 ```
 
-It writes `cards/{Project}/{Project}.png` when the card has an avatar, `.json` when it
-does not, and a worldbook JSON for a standalone worldbook.
+角色卡有头像时写出 `cards/{Project}/{Project}.png`，没有头像时写 `.json`；独立世界书写
+worldbook JSON。
 
-**`sillytavern-card-pipeline` must not be used in this framework.** It ships no build
-engine — it discovers the target repository's own tooling, and a forge project has none.
-Reaching for it here produces a "missing adapter boundary" report instead of a card.
+**这条框架里绝不能使用 `sillytavern-card-pipeline`。** 它不附带 build engine —— 它做的
+是发现目标仓库自己的工具链，而 forge project 没有任何这类工具。在这条链上伸手去够它，
+得到的是一份「缺少 adapter boundary」的报告，而不是一张卡。
 
-### Framework B — data-driven engineering repository
+### 框架 B —— 数据驱动的工程仓库
 
-Only when the user points at an existing card repository, asks about a watch build or a
-component library or an adapter, or asks for a release/acceptance gate.
+只在用户指向一个已有的角色卡仓库、问起 watch build / 组件库 / adapter、或者要求
+release / acceptance 闸门时才走这条。
 
 ```
-tavern-card-builder            → design and the runtime-dependency ledger
-sillytavern-card-components    → decomposition, registry, recipes
+tavern-card-builder            → 设计与 runtime-dependency ledger
+sillytavern-card-components    → 拆解、registry、recipe
 sillytavern-card-pipeline      → validate by impact → compose → pack → embed → gate
-sillytavern-runtime-debug      → evidence from a real SillyTavern session
+sillytavern-runtime-debug      → 来自真实 SillyTavern session 的证据
 ```
 
-Packaging goes through the project's own tools, discovered and verified first. If the
-repository has no such tool, the correct answer is to report the missing adapter
-boundary — never to improvise a command.
+打包走项目自己的工具，且**先发现、先验证**。如果那个仓库没有这样的工具，正确答案是
+报告缺失的 adapter boundary —— 绝不自编一条命令。
 
-### Shared skills
+### 两条框架共享的 skill
 
-Both frameworks route to these for their own concerns: `tavern-ui` /
-`sillytavern-embedded-ui` (interfaces), `sillytavern-database-rolecards` (variables and
-data), `sillytavern-api-reference` (exact signatures and version facts),
-`sillytavern-render-regex-pipeline` (regex), `sillytavern-component-update` (single
-components), `sillytavern-rolecard-performance` (budgets), `sillytavern-rolecard-security`
-(injection and remote-load review), `sillytavern-media-live2d-runtime` (media),
-`sillytavern-extension-dev` (extensions), `tavern-helper-frontend` (Tavern Helper
-frontends), `rewrite-natural-prose` (prose), `code-quality-workflow` (architecture),
-`orchestrate-project-blueprint` (vague wish → design), `rolecard-workshop-ops`
-(publishing infrastructure), and `consult-tavernweave-library` (guide routing).
+以下 skill 各自负责一个专门领域，两条框架都会用到：`tavern-ui` /
+`sillytavern-embedded-ui`（界面）、`sillytavern-database-rolecards`（变量与数据）、
+`sillytavern-api-reference`（精确签名与版本事实）、
+`sillytavern-render-regex-pipeline`（正则）、`sillytavern-component-update`（单个组件）、
+`sillytavern-rolecard-performance`（预算）、`sillytavern-rolecard-security`（注入与远程
+加载审查）、`sillytavern-media-live2d-runtime`（媒体）、`sillytavern-extension-dev`
+（扩展）、`tavern-helper-frontend`（Tavern Helper 前端）、`rewrite-natural-prose`
+（文风）、`code-quality-workflow`（架构）、`orchestrate-project-blueprint`（模糊愿望 →
+设计案）、`rolecard-workshop-ops`（发布基础设施）、`consult-tavernweave-library`
+（资料库路由）。
 
-### Codex subagents do not exist here
+### 这里的 Codex subagent 并不存在
 
-These skills were authored for Codex and name subagents the Codex harness used to inject
-— `check-agent`, `schema-agent`, `first-message-agent`, `conversion-agent`. DSH defines
-no such agents. The preset persona instructs the model to do the work directly, or
-delegate with the `subagent` tool and paste that skill's full instruction block into the
-task string. Never stall waiting for an agent that will not appear, and never claim one
-ran.
+这些 skill 是为 Codex 写的，里面点名了 Codex harness 会注入的 subagent ——
+`check-agent`、`schema-agent`、`first-message-agent`、`conversion-agent`。DSH 不定义这些
+agent。preset 的 persona 指示模型：要么自己动手做，要么用 `subagent` tool 委派并把该
+skill 的完整指令块粘进 task 字符串。**绝不要干等一个不会出现的 agent，也绝不要声称某个
+agent 跑过。**
 
-## The skill bundles
+## skill bundle 清单
 
-23 bundles under `skills/`. Every one is a directory with a `SKILL.md` carrying `name`
-and `description` frontmatter; DSH reads that frontmatter for the catalog and loads the
-body only on demand.
+`skills/` 下 23 个 bundle。每个都是一个目录，内含一个 `SKILL.md`，frontmatter 里带
+`name` 和 `description`；DSH 用这段 frontmatter 建立 catalog，正文只在按需加载时才读。
 
-| Group | Skills |
+| 分组 | Skill |
 |---|---|
 | 叙事设计 | `tavern-design` |
 | 项目创建与条目创作 | `tavern-cards` |
@@ -176,31 +172,30 @@ body only on demand.
 | 工坊与发布基础设施 | `rolecard-workshop-ops` |
 | 指导式教学 | `activate-tavernweave-soul` |
 
-`tavern-cards` ships a 4.7 MB bundled CLI at `tavern-cards/scripts/tavern-cards-forge.mjs`.
-It is one self-contained file, not an installed dependency.
+`tavern-cards` 在 `tavern-cards/scripts/tavern-cards-forge.mjs` 附带一个 4.7 MB 的 CLI。
+它是单个自足文件，不是需要安装的 dependency。
 
-## Edit and reinstall
+## 修改与重装
 
-`pnpm` links this directory into the profile, so the persona text is read from here.
+`pnpm` 把本目录 link 进 profile，所以 persona 文本就是从这里读的。
 
-A change to `cordis.patch.yml` only reloads during an installation that changes a
-dependency row. Re-running `install_bundle` on an unchanged package fails with
-`ambiguous-install`, and bumping `version` alone is not enough, because pnpm keeps the
-identical `link:` spec. Remove and re-add instead:
+对 `cordis.patch.yml` 的修改，只有在**改变了某条 dependency row 的那次安装**里才会被
+重新加载。对一个没变的包重跑 `install_bundle` 会以 `ambiguous-install` 失败；而只把
+`version` 加一也不够，因为 pnpm 保留的是完全相同的 `link:` spec。正确做法是先移除再
+重新加入：
 
 ```
 plugin_manager action=remove_bundle  target=charcard-workshop
-plugin_manager action=install_bundle target="<absolute path to this directory>"
+plugin_manager action=install_bundle target="<本目录的绝对路径>"
 ```
 
-Skill bodies need no reinstall — `skill-filesystem` watches its roots and re-reads the
-file from disk on every load.
+skill 正文不需要重装 —— `skill-filesystem` 会 watch 它扫描的各个 root，每次加载都重新
+从磁盘读取文件。
 
-## License
+## 许可
 
-MIT for this repository — see [LICENSE](LICENSE).
+本仓库采用 MIT —— 见 [LICENSE](LICENSE)。
 
-That covers the preset declaration and the documentation. It is **not** a grant over the
-skill bodies under `skills/`, which remain the property of their authors. See
-[NOTICE.md](NOTICE.md) for each bundle's provenance, the upstream acknowledgements, and
-the list of skills deliberately excluded for licensing reasons.
+这覆盖的是 preset 声明与文档。它**不是**对 `skills/` 下 skill 正文的授权，那些正文的
+权利仍属各自作者。每个 bundle 的来源、上游致谢、以及因许可原因被刻意排除的 skill 清单，
+见 [NOTICE.md](NOTICE.md)。

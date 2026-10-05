@@ -1,0 +1,4 @@
+interface:
+  display_name: "SillyTavern API Reference"
+  short_description: "Verify SillyTavern APIs and runtime dependency facts"
+  default_prompt: "Use $sillytavern-api-reference to verify the exact API, host capability, or remote loader required by this rolecard script."

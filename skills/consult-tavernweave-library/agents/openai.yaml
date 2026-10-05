@@ -1,0 +1,4 @@
+interface:
+  display_name: "TavernWeave Library"
+  short_description: "按任务查询 ST 指南、完整设计动效库与蒸馏账本"
+  default_prompt: "Use $consult-tavernweave-library to route this TavernWeave task and return only the smallest relevant guide set and proposed catalog candidates."

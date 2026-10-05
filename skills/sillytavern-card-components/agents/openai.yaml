@@ -1,0 +1,4 @@
+interface:
+  display_name: "SillyTavern Card Components"
+  short_description: "Extract rolecards and preserve modular runtime contracts"
+  default_prompt: "Use $sillytavern-card-components to safely disassemble this card, classify its runtime dependencies, and propose a registry-backed component layout."

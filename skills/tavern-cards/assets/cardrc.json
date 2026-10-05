@@ -1,0 +1,112 @@
+{
+    "projects": {},
+    "default_part_order": {
+        "角色": [
+            "basic",
+            "personality",
+            "tri_faceted",
+            "other"
+        ],
+        "地理": [
+            "region",
+            "scene",
+            "faction"
+        ],
+        "MVU": [
+            "variable_list",
+            "update_rules",
+            "output_format",
+            "initvar"
+        ],
+        "时间线": [
+            "history",
+            "plot"
+        ]
+    },
+    "default_strategy_thresholds": {
+        "角色": {
+            "basic": {
+                "required": true,
+                "threshold": 5
+            },
+            "other": {
+                "required": false,
+                "threshold": 2
+            },
+            "personality": {
+                "required": true,
+                "threshold": 2
+            },
+            "tri_faceted": {
+                "required": false,
+                "threshold": 2
+            }
+        },
+        "事件": 0,
+        "地理": {
+            "faction": {
+                "required": false,
+                "threshold": 4
+            },
+            "region": {
+                "required": false,
+                "threshold": 4
+            },
+            "scene": {
+                "required": false,
+                "threshold": 4
+            }
+        },
+        "MVU": {
+            "initvar": {
+                "required": false,
+                "threshold": null
+            },
+            "output_format": {
+                "required": false,
+                "threshold": "Infinity"
+            },
+            "update_rules": {
+                "required": false,
+                "threshold": "Infinity"
+            },
+            "variable_list": {
+                "required": false,
+                "threshold": "Infinity"
+            }
+        },
+        "NPC": 0,
+        "扮演准则": "Infinity",
+        "时间线": {
+            "history": {
+                "required": false,
+                "threshold": "Infinity"
+            },
+            "plot": {
+                "required": false,
+                "threshold": "Infinity"
+            }
+        },
+        "世界观": "Infinity"
+    },
+    "default_type_lists": {
+        "before_char": [
+            "世界观",
+            "扮演准则",
+            "时间线",
+            "地理"
+        ],
+        "after_char": [
+            "角色",
+            "NPC"
+        ],
+        "depth": [
+            "事件",
+            "MVU"
+        ]
+    },
+    "depth_defaults": {
+        "depth": 0,
+        "role": "system"
+    }
+}

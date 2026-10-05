@@ -1,0 +1,26 @@
+# Files that must never reach the public repository.
+
+# Install state
+node_modules/
+pnpm-lock.yaml
+
+# Local card projects and their build output. A card is a user deliverable.
+cards/
+.cardrc.json
+tavern-cards-state.json
+
+# Card artifacts
+*.png
+*.webp
+!docs/**/*.png
+
+# Nested repositories, if a skill was captured from a git checkout
+.git/
+.gitmodules
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

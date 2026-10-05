@@ -1,0 +1,24 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions",
+    "value": {
+      "tavern_helper": {
+        "scripts": {},
+        "variables": {}
+      },
+      "talkativeness": "0.5",
+      "fav": false,
+      "depth_prompt": {
+        "prompt": "",
+        "depth": 4,
+        "role": "system"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/regex_scripts",
+    "value": {}
+  }
+]

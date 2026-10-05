@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tavern Card Builder"
+  short_description: "Detect, plan, and author maintainable SillyTavern rolecards"
+  default_prompt: "Use $tavern-card-builder to detect this rolecard's type and runtime dependencies, design or retrofit its contracts, and route engineering work to the right specialist."

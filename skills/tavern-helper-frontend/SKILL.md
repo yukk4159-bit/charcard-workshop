@@ -1,0 +1,40 @@
+---
+name: tavern-helper-frontend
+description: 如果 `xxx` 文件夹中既有 `index.ts` 文件也有 `index.html` 文件, 则它是一个酒馆助手前端界面. 前端界面以无沙盒 iframe 的形式在酒馆消息楼层中前台显示, 有一个内嵌在消息楼层中的界面, 你可以在其中添加静态内容、样式、脚本等. 酒馆消息楼层中的文本原本只支持静态内容、不支持执行代码 (`<script>` 部分会被删除), 前端界面则补足了这一点, 并可以通过酒馆助手接口做到操作酒馆变量、开关世界书条目等功能. 当涉及酒馆助手前端界面、需要制作伴随消息楼层的界面或者涉及这些功能时, 你应该参考本 skill.
+---
+# 前端界面
+
+如果 `src/xxx` 文件夹中既有 `index.ts` 文件也有 `index.html` 文件, 则它是一个前端界面项目.
+
+前端界面以无沙盒 iframe 的形式在酒馆消息楼层中前台显示, 有一个自己的界面, 你可以在其中添加静态内容、样式、脚本等.
+
+## index.html 中应该写什么
+
+前端界面的 index.html 仅可填写静态 `<body>` 内容, 不得引用项目中其他文件, 所有非内嵌样式、代码、额外的外部依赖都应通过 Typescript 文件导入. 具体来说:
+
+```html
+<head>
+  <!-- 保留一个什么都没有的 <head> 标签, webpack 打包时会在这里插入样式、脚本等 -->
+</head>
+<body>
+  <!-- 这里写 <div>、<span> 等静态内容, 也可以只写 <div id="app"></div> 交给 vue 来渲染 -->
+</body>
+```
+
+- 禁止在 `index.html` 中用 `<link rel="stylesheet" href="./index.css">` 导入样式, 而应该
+  - (优先) 设计 vue 组件, 在 vue 组件中用 `<style lang="scss">` 书写.
+  - 或在 Typescript 文件中用 `import './index.css'` 导入, 这样导入的样式将会经过打包最小化后插入到 `<head>` 部分;
+- 禁止在 `index.html` 中用 `<script src="./index.ts">` 来引用 `index.ts` 或其他本地脚本. `index.ts` 及它导入的文件会由 webpack 直接加入到最终打包好的 `dist/**/index.html` 中.
+- 在 `index.html` 中填入 `<img>` 标签时, 禁止使用 `src=""` 占位. 要么引用实际的图片, 要么不要有这个属性, 否则会导致 webpack 打包错误.
+
+## 图标使用
+
+你可以任意使用 fontawesome 的免费图标.
+
+## iframe 适配要求
+
+- 当对前端界面高度进行调整时, 禁止使用 `vh` 单位等会受宿主高度影响的单位, 而是使用 `width` 和 `aspect-ratio` 来让高度根据宽度动态调整.
+- 避免使用会强制撑高父容器的元素 (如 `min-height`、`overflow: auto`).
+- 页面必须有外部支撑, 主体内容不能使用 `position: absolute` 等会脱离文档流的样式.
+- 页面整体应适配容器宽度，不产生横向滚动条.
+- 如果样式更适合卡片形状，则不要有背景颜色，除非用户有明确要求.

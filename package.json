@@ -1,0 +1,36 @@
+{
+  "name": "charcard-workshop",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "角色卡工坊 — a DeepSeek Harness agent preset and skill set for authoring SillyTavern character cards.",
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "agent-preset",
+    "agent-skills",
+    "sillytavern",
+    "character-card",
+    "rolecard"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yukk4159-bit/charcard-workshop"
+  },
+  "homepage": "https://github.com/yukk4159-bit/charcard-workshop",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.4"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "README.md",
+    "NOTICE.md",
+    "LICENSE",
+    "skills"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

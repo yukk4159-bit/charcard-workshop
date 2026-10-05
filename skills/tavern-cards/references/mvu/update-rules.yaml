@@ -1,0 +1,16 @@
+rule:
+  - merge rules of the same variable types into one rule:
+    - for fixed keys: "non-object type, `z.object({...})` and `z.record(z.enum(...), ...)` indicate that their keys always exist, so `主角.能力面板.力量`、`主角.能力面板.敏捷`、`主角.能力面板.体质`、`主角.能力面板.感知`、`主角.能力面板.意志`、`主角.能力面板.魅力` can be merged as `主角.能力面板.${力量|敏捷|体质|感知|意志|魅力}`, because their update rules are similar; the same applies to `${变量}.主角评价`"
+    - for dynamic keys: |-
+        `物品栏: z.record(z.string().describe('物品名'), ...)` and `z.partialRecord(z.enum(...), ...)` may be empty or contain various items, so you should specify the path as `物品栏`, and put the key part into `type`'s index signature:
+        物品栏:
+          type: |-
+            {
+              [物品名: string]: {
+                ...
+              }
+            }
+  - nest fields of the same object to reduce tokens and make it more readable. for example, since `主角.能力面板` and `主角.装备栏` are both fields of `主角`, nest them under `主角` mapping
+  - omit the type field for string variables
+  - don't update readonly fields: field names starts with `_` are readonly, such as `_变量`, so don't list update rules for them
+  - avoid listing update rules for variables whose names are self-explanatory unless user specifies special rules for them

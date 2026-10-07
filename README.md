@@ -22,8 +22,11 @@ goal、plan-mode、compaction、delegation、workflow、web、todo 这些工具�
 再额外加一段 persona，把做卡的工作路由到对应的 skill。**不增加也不移除任何 tool**，
 所以它是一个 lens，而不是另一个 agent。
 
-因为 persona 和它带的 skill catalog 都限定在这个 preset 里，卡相关的 context
-**只会在选用「角色卡工坊」的 session 中加载**。其他 session 保持干净。
+persona 与路由契约限定在这个 preset 里，所以它们只作用于选用「角色卡工坊」的 session。
+但 **skill 的发现不是 preset 级的**：`$DSH_HOME/skills` 是 user 级 root（rank 400），
+标准/PTC/极简/创造四个内置 mode 都会扫描它，所以装到那里的 skill 会出现在**每一个**
+session 的 catalog 里。要让某个 skill 只在本 mode 出现，就把它放进只有本 preset 扫描的
+root（`customSkillDirs`，rank 300），而不是 `$DSH_HOME/skills`。
 
 | 项目 | 值 |
 |---|---|
@@ -141,6 +144,34 @@ sillytavern-runtime-debug      → 来自真实 SillyTavern session 的证据
 agent。preset 的 persona 指示模型：要么自己动手做，要么用 `subagent` tool 委派并把该
 skill 的完整指令块粘进 task 字符串。**绝不要干等一个不会出现的 agent，也绝不要声称某个
 agent 跑过。**
+
+### skill 是怎么被调用的（以及为什么会被漏掉）
+
+DSH 的 skill 由**模型自己调用**。harness 只做两件事：把 skill catalog（每个 skill 的
+`name` + `description`）作为一条 `user/message` 注进 session，并提供 `skill` tool 按名字取正文。
+没有任何机制会替你触发 skill，也没有东西会在中途重新提醒模型。
+
+由此推出两个实践后果，本 preset 都做了处理：
+
+- **catalog 只发布一次，不会每轮重复。** 它出现在 session 开头。对话越长，模型在动手写正文时
+  越容易想不起它。所以 persona 把路由契约写成「按你**即将执行的动作**分类」而不是「等用户说
+  关键词」，并在 `suffix`（system prompt 的最后一段）放了一道开门闸：一个 turn 内第一次
+  write/edit 之前必须先加载对应 skill，**写完再补算漏调**。
+- **catalog 里的 description 会被截断。** `dsh-tool-skill` 默认
+  `catalogDescriptionMaxLength: 500`。本套 23 个 skill 里有 10 个的 description 超过 500 字符，
+  而截掉的正好是结尾的「该用谁 / 不该用谁」消歧句 —— 例如 `tavern-card-builder` 会丢掉
+  `route those tasks to the focused TavernWeave skills`，
+  `sillytavern-card-pipeline` 会丢掉整句 `use sillytavern-card-components instead`。
+  本 preset 把它设为 `1200`，覆盖最长的一条（约 930 字符），因此每条 catalog 都是完整的。
+
+### 想绕过模型的判断？直接用 `/skill-name` 点名
+
+路由能不能成，最终取决于模型每轮的决定。你要不想赌这一步，就在消息里直接写斜杠命令：
+消息正文里出现一个独立的 `/rewrite-natural-prose`（前后是空格或行首行尾），DSH 会把该
+skill 的完整正文直接注进这一轮，模型不需要自己想起来。名字必须和 catalog 里的完全一致。
+
+比如「这段设定 `/rewrite-natural-prose` 帮我改一遍」就会强制加载。这条通道不受上面两个
+问题影响，是最硬的兜底。
 
 ## skill bundle 清单
 

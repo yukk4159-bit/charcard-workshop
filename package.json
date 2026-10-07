@@ -1,6 +1,6 @@
 {
   "name": "charcard-workshop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "角色卡工坊 — a DeepSeek Harness agent preset and skill set for authoring SillyTavern character cards.",
   "license": "MIT",

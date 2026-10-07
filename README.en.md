@@ -22,8 +22,12 @@ filesystem, search, job, goal, plan-mode, compaction, delegation, workflow, web 
 surface — plus a persona that routes card work to the right skill. **No tools are added
 or removed**, so the mode is a lens rather than a different agent.
 
-Because the persona and its skill catalog are scoped to the preset, card context loads
-only in sessions that select 角色卡工坊. Every other session stays clean.
+The persona and its routing contract are scoped to the preset, so they apply only in
+sessions that select 角色卡工坊. Skill *discovery* is not preset-scoped, though:
+`$DSH_HOME/skills` is the user-wide `user-dsh` root (rank 400), which the standard, PTC,
+minimal and cordis modes all scan, so skills installed there appear in **every** session's
+catalog. To keep a skill in this mode alone, put it in a root only this preset scans
+(`customSkillDirs`, rank 300) rather than in `$DSH_HOME/skills`.
 
 | Piece | Value |
 |---|---|
@@ -146,6 +150,36 @@ no such agents. The preset persona instructs the model to do the work directly, 
 delegate with the `subagent` tool and paste that skill's full instruction block into the
 task string. Never stall waiting for an agent that will not appear, and never claim one
 ran.
+
+### How skills actually get invoked, and why they get missed
+
+A DSH skill is invoked by **the model itself**. The harness does exactly two things: it injects
+the skill catalog (each skill's `name` + `description`) as a `user/message`, and it exposes the
+`skill` tool that returns a skill body by name. Nothing triggers a skill on your behalf, and
+nothing re-reminds the model partway through a session.
+
+Two practical consequences follow, and this preset handles both:
+
+- **The catalog is published once, not per turn.** It lands at the start of the session, so the
+  longer the conversation runs, the easier it is for the model to forget it while writing. The
+  persona therefore states the routing contract as *the action you are about to take* rather than
+  *a keyword the user must say*, and the `suffix` — the last block of the system prompt — carries
+  an opening gate: load the matching skill before the first write/edit of a turn. Acting first and
+  loading afterwards counts as a miss.
+- **Catalog descriptions are truncated.** `dsh-tool-skill` defaults to
+  `catalogDescriptionMaxLength: 500`. Ten of this set's 23 skills exceed 500 characters, and the
+  cut lands exactly on the trailing disambiguation clause — `tavern-card-builder` loses
+  `route those tasks to the focused TavernWeave skills`, and `sillytavern-card-pipeline` loses the
+  whole `use sillytavern-card-components instead` sentence. This preset sets the cap to `1200`,
+  which clears the longest description in the set (~930 characters), so every catalog line is whole.
+
+### Bypass the model's judgement: name the skill with `/skill-name`
+
+Whether routing happens comes down to the model's decision each turn. If you would rather not
+gamble on that, write a slash command directly in your message: a standalone `/rewrite-natural-prose`
+in the message body (whitespace or line-start/line-end on either side) makes DSH inject that skill's
+full body into the turn itself, with no decision by the model. The name must match the catalog
+exactly. This channel is unaffected by both problems above and is the hardest guarantee available.
 
 ## The skill bundles
 

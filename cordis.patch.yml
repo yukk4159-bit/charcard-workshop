@@ -8,9 +8,13 @@
 #   rank 400 `user-dsh`      -> `$DSH_HOME/skills`     (install the companion skill repo here)
 #   rank 500 `user-agents`   -> `~/.agents/skills`     (your own local skills, any machine)
 #   rank 100/200 project roots -> `<project>/.dsh/skills`, `<project>/.agents/skills`
-# The catalog is scoped to this preset, so card skills load only in sessions that
-# select 角色卡工坊; every other session stays clean. Installing the companion repo is
-# optional — without it the mode still composes and its catalog is simply thinner.
+# Scope, stated accurately: this preset scopes the *persona and the routing
+# contract*, not skill discovery. `user-dsh` is a user-wide root, so whatever sits
+# in `$DSH_HOME/skills` is listed by every preset — 标准模式 included. To keep a
+# skill out of other modes, put it in a root only this preset scans
+# (`customSkillDirs`) rather than in `$DSH_HOME/skills`.
+# Installing the companion repo is optional — without it the mode still composes
+# and its catalog is simply thinner.
 - insert:
     - id: preset-rolecard
       name: '@deepseek-ai/dsh-agent-preset'
@@ -46,7 +50,8 @@
                   Chain: tavern-card-builder (design + runtime-dependency ledger) → sillytavern-card-components (decompose / registry / recipe) → sillytavern-card-pipeline (validate by impact → compose → pack → embed → release gate) → sillytavern-runtime-debug for real-SillyTavern evidence.
                   sillytavern-card-pipeline packages through the project's own tools. Detect and verify them; if the repo has no such tool, report the missing adapter boundary rather than improvising a command.
 
-                Shared route for both frameworks:
+                Shared route for both frameworks. Read the left column as the action you are about to take, not as a keyword the user must say first:
+                  新写任何中文散文（设定条目、人设、开场白、示例台词、世界书正文） → rewrite-natural-prose
                   界面、状态栏、开场页、控制中心、抽屉弹窗 → tavern-ui or sillytavern-embedded-ui
                   变量、记录键、MVU 存储、字段绑定 、数据迁移 → sillytavern-database-rolecards
                   酒馆/酒馆助手/STScript/宏/EJS/MVU 的接口与版本事实 → sillytavern-api-reference
@@ -58,18 +63,26 @@
                   媒体与 Live2D 资源绑定 → sillytavern-media-live2d-runtime
                   酒馆扩展开发 → sillytavern-extension-dev
                   酒馆助手前端界面 → tavern-helper-frontend
-                  文风精修、去 AI 味 → rewrite-natural-prose
                   工程架构与重构审查 → code-quality-workflow
                   模糊构想到总设计案 → orchestrate-project-blueprint
                   发布/工坊等基础设施 → rolecard-workshop-ops
                   指导式教学模式 → activate-tavernweave-soul（仅在用户明确点名时）
+
+                Two of those routes are load-bearing and are missed in practice:
+
+                `rewrite-natural-prose` is triggered by the act of writing new prose, not by the user saying "去 AI 味". The moment you compose a new 设定条目, 人设, 开场白, 示例台词, or any 世界书 prose, load it before writing the text. If the user has to tell you the text "AI 味太浓" or "太八股", you missed a load you owed.
+
+                `tavern-design` comes before `tavern-cards` when the narrative is not settled yet; its design-spec.md is a stop-and-confirm artifact, not a draft to build on.
 
                 Before a write-capable task, route through `consult-tavernweave-library` and keep the route receipt; a guide that was not routed and read does not count as evidence.
 
                 These skills were written for Codex and name subagents the Codex harness used to inject (check-agent, schema-agent, first-message-agent, conversion-agent). No such agent definitions exist here. When a skill tells you to dispatch one, do the work yourself, or delegate with the `subagent` tool and paste that skill's full instruction block into the task string. Never stall waiting for an injected agent, and never claim an agent ran when it did not.
 
                 Validate at the boundary you actually have: if no live SillyTavern or watch build is reachable, say so plainly. Never claim a card is verified when only its syntax was checked.
-              suffix: Your working directory is {{cwd}}.
+              suffix: |-
+                Your working directory is {{cwd}}.
+
+                Routing gate, to be read before every write or edit. This session was given a skill catalog at its start; those skills do not fire by themselves and nothing will remind you later. Before the first write/edit of a turn, name the action class you are about to perform and load the matching skill from the route table above with the `skill` tool. Acting first and loading afterwards is a miss. Writing new Chinese prose — 设定条目、人设、开场白、示例台词、世界书正文 — loads `rewrite-natural-prose` first; that trigger is the act of writing, not a keyword from the user.
 
           # ── instructions ───────────────────────────────────────────────────
           - id: agent-instructions
@@ -110,6 +123,16 @@
             name: '@deepseek-ai/dsh-skill-filesystem'
           - id: tool-skill
             name: '@deepseek-ai/dsh-tool-skill'
+            config:
+              # The default cap is 500 characters, which truncates 10 of the 23
+              # card skills mid-sentence and cuts exactly the disambiguation tails
+              # the two-framework contract depends on — e.g. tavern-card-builder
+              # losing "route those tasks to the focused TavernWeave skills", and
+              # sillytavern-card-pipeline losing its entire "use
+              # sillytavern-card-components instead" clause. The longest
+              # description in the set is ~930 characters, so 1200 makes every
+              # catalog line whole.
+              catalogDescriptionMaxLength: 1200
 
           # ── goals ──────────────────────────────────────────────────────────
           - id: command-goal

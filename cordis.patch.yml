@@ -80,8 +80,6 @@
 
                 Validate at the boundary you actually have: if no live SillyTavern or watch build is reachable, say so plainly. Never claim a card is verified when only its syntax was checked.
               suffix: |-
-                Your working directory is {{cwd}}.
-
                 Routing gate, to be read before every write or edit. This session was given a skill catalog at its start; those skills do not fire by themselves and nothing will remind you later. Before the first write/edit of a turn, name the action class you are about to perform and load the matching skill from the route table above with the `skill` tool. Acting first and loading afterwards is a miss. Writing new Chinese prose — 设定条目、人设、开场白、示例台词、世界书正文 — loads `rewrite-natural-prose` first; that trigger is the act of writing, not a keyword from the user.
 
           # ── instructions ───────────────────────────────────────────────────

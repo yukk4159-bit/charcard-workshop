@@ -80,6 +80,24 @@ Copy-Item -Path ".\skills\*" -Destination "$env:DSH_HOME\skills" -Recurse -Force
 **3. 验证。** 该 mode 会出现在 session 的 mode 选择器里。用它与新开一个 session，
 确认 catalog 里列出了这些做卡的 skill。
 
+### 0.2.2-rc.5 适配（本 checkout）
+
+本目录已按当前运行的 DSH `0.2.2-rc.5` 重新基线化，版本号 `1.2.0`：
+
+- `cordis.patch.yml` 的插件列表**逐行取自该版本自带的 `standard` preset**，只保留工坊的
+  persona 前缀/后缀和 `tool-skill.catalogDescriptionMaxLength: 1200`。上游补丁里
+  `tool-ralph`、`tool-subagent-control/list-agents` 子路径、`modelSelectionSettings` /
+  `backgroundMode` 这些行在 rc.5 已不存在，原样安装会让 preset 注册失败。
+- 清单声明 `engines.dsh: ">=0.2.2-rc.5 <0.3.0"`，范围外的 DSH 会被插件管理器拒绝。
+- skill 已按上面第 2 步复制到 `$DSH_HOME/skills`（23 个目录），因此本机任意 session 的
+  catalog 都能看到它们；只想让本 mode 看到时，改用 `customSkillDirs` 指向本目录。
+
+安装命令（本机已验证）：
+
+```text
+plugin_manager action=install_bundle target="E:\制卡模式\制卡模式\角色卡工坊"
+```
+
 ## 两套制卡框架，以及为什么必须区分
 
 路由契约写在 `cordis.patch.yml` 里。它把两条**不可互换**的 workflow 分开，因为它们

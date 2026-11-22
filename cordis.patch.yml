@@ -1,20 +1,22 @@
 # 角色卡工坊 — a DSH agent preset for authoring SillyTavern character cards.
 #
 # One `@deepseek-ai/dsh-agent-preset` declaration. The plugin list is the shipped
-# `standard` preset (标准模式) — the same tools, so this mode is a lens rather than a
-# different agent — plus a persona that routes card work to the right skill.
+# 0.2.2-rc.5 `standard` preset (标准模式) — the same tools, so this mode is a lens
+# rather than a different agent — plus a persona that routes card work to the
+# right skill, and a larger catalog description cap so the routing tails survive.
+#
+# Kept in sync with `presets/standard.patch.yml` from the running DSH release:
+# rows the older upstream patch carried (tool-ralph, the list-agents subpath,
+# modelSelectionSettings/backgroundMode) no longer exist in 0.2.2-rc.5.
 #
 # Skill discovery uses the provider's own default roots; no path appears here:
-#   rank 400 `user-dsh`      -> `$DSH_HOME/skills`     (install the companion skill repo here)
-#   rank 500 `user-agents`   -> `~/.agents/skills`     (your own local skills, any machine)
+#   rank 400 `user-dsh`    -> `$DSH_HOME/skills`  (install the companion skills here)
+#   rank 500 `user-agents` -> `~/.agents/skills`  (your own local skills)
 #   rank 100/200 project roots -> `<project>/.dsh/skills`, `<project>/.agents/skills`
 # Scope, stated accurately: this preset scopes the *persona and the routing
-# contract*, not skill discovery. `user-dsh` is a user-wide root, so whatever sits
-# in `$DSH_HOME/skills` is listed by every preset — 标准模式 included. To keep a
-# skill out of other modes, put it in a root only this preset scans
-# (`customSkillDirs`) rather than in `$DSH_HOME/skills`.
-# Installing the companion repo is optional — without it the mode still composes
-# and its catalog is simply thinner.
+# contract*, not skill discovery. `user-dsh` is user-wide, so whatever sits in
+# `$DSH_HOME/skills` is listed by every preset. To keep a skill out of other
+# modes, put it in a root only this preset scans (`customSkillDirs`).
 - insert:
     - id: preset-rolecard
       name: '@deepseek-ai/dsh-agent-preset'
@@ -30,7 +32,6 @@
           bars and regex, JSON/PNG packaging and validation.
         order: 2
         plugins:
-          # ── persona ────────────────────────────────────────────────────────
           - id: persona
             name: '@deepseek-ai/dsh-persona'
             config:
@@ -81,14 +82,12 @@
                 Validate at the boundary you actually have: if no live SillyTavern or watch build is reachable, say so plainly. Never claim a card is verified when only its syntax was checked.
               suffix: |-
                 Routing gate, to be read before every write or edit. This session was given a skill catalog at its start; those skills do not fire by themselves and nothing will remind you later. Before the first write/edit of a turn, name the action class you are about to perform and load the matching skill from the route table above with the `skill` tool. Acting first and loading afterwards is a miss. Writing new Chinese prose — 设定条目、人设、开场白、示例台词、世界书正文 — loads `rewrite-natural-prose` first; that trigger is the act of writing, not a keyword from the user.
-
-          # ── instructions ───────────────────────────────────────────────────
           - id: agent-instructions
             name: '@deepseek-ai/dsh-agent-instructions'
             config:
               maxBytes: 65536
-
-          # ── terminal and files ─────────────────────────────────────────────
+          - id: time-context
+            name: '@deepseek-ai/dsh-time-context'
           - id: tool-bash
             name: '@deepseek-ai/dsh-tool-bash'
             disabled: !!js process.platform === 'win32'
@@ -97,48 +96,30 @@
             disabled: !!js process.platform !== 'win32'
           - id: tool-fs
             name: '@deepseek-ai/dsh-tool-fs'
+            config:
+              # Set false to drop the apply_patch tool beside edit.
+              applyPatch: false
           - id: tool-fs-search
             name: '@deepseek-ai/dsh-tool-fs-search'
             config:
               sampleOverCapGlobResults: false
           - id: tool-jobs
             name: '@deepseek-ai/dsh-tool-jobs'
-
-          # ── skills: the card-authoring set + your own local skills ──────────
-          # The skill bodies are NOT shipped in this package; they live in the
-          # companion repository and are installed into `$DSH_HOME/skills`, which
-          # this provider already scans as its `user-dsh` root (rank 400).
-          # `includeDefaultRoots` therefore already covers them, and nothing here
-          # needs a machine-specific path.
-          #
-          # To keep card skills out of every other session, do not add them as a
-          # separate bundle: a bundle's rows mount unscoped and would publish the
-          # catalog globally. This preset's row is what scopes them.
-          #
-          # No skills installed yet? The mode still composes; its catalog is just
-          # thinner. Point `customSkillDirs` at any other checkout instead.
+          - id: tool-schedule
+            name: '@deepseek-ai/dsh-tool-schedule'
           - id: skill-filesystem
             name: '@deepseek-ai/dsh-skill-filesystem'
+            config:
+              customSkillDirs:
+                - !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('@deepseek-ai/dsh-agent-preset/package.json')), 'skills')
           - id: tool-skill
             name: '@deepseek-ai/dsh-tool-skill'
             config:
-              # The default cap is 500 characters, which truncates 10 of the 23
-              # card skills mid-sentence and cuts exactly the disambiguation tails
-              # the two-framework contract depends on — e.g. tavern-card-builder
-              # losing "route those tasks to the focused TavernWeave skills", and
-              # sillytavern-card-pipeline losing its entire "use
-              # sillytavern-card-components instead" clause. The longest
-              # description in the set is ~930 characters, so 1200 makes every
-              # catalog line whole.
               catalogDescriptionMaxLength: 1200
-
-          # ── goals ──────────────────────────────────────────────────────────
           - id: command-goal
             name: '@deepseek-ai/dsh-command-goal'
           - id: tool-goal
             name: '@deepseek-ai/dsh-tool-goal'
-
-          # ── plan mode ──────────────────────────────────────────────────────
           - id: planning
             name: cordis:group
             group: true
@@ -149,7 +130,7 @@
                 name: '@deepseek-ai/dsh-plan-mode'
                 config:
                   section: |
-                    You are in plan mode. Stay in plan mode until exit_plan_mode succeeds or the user switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
+                    You are in plan mode. Stay in plan mode until the user approves your plan through exit_plan_mode or switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
 
                     Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual repository. Do not edit or write files, change configuration, run formatters or code generation that rewrites tracked files, commit, or otherwise carry out the plan. Prefer existing functions and patterns over new machinery.
 
@@ -160,8 +141,6 @@
                     Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions. Keep it concise enough to review but detailed enough that another engineer can implement it without making design decisions.
 
                     When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
-
-          # ── compaction ─────────────────────────────────────────────────────
           - id: compaction
             name: cordis:group
             group: true
@@ -179,8 +158,6 @@
                   thresholdChars: 8192
                   headChars: 4096
                   tailChars: 1024
-
-          # ── delegation ─────────────────────────────────────────────────────
           - id: delegation
             name: cordis:group
             group: true
@@ -189,51 +166,26 @@
             config:
               - id: tool-subagent-control
                 name: '@deepseek-ai/dsh-tool-subagent-control'
-              - id: tool-subagent-list-agents
-                name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+                config:
+                  interrupt: false
               - id: tool-subagent
                 name: '@deepseek-ai/dsh-tool-subagent'
                 config:
                   provider: spawn
                   toolName: subagent
-                  modelSelectionSettings: true
-                  backgroundMode: continuable
+                  modelSelection: true
+                  modelDiscovery: true
               - id: tool-subagent-fork
                 name: '@deepseek-ai/dsh-tool-subagent'
                 config:
                   provider: fork
                   toolName: subagent_fork
-                  backgroundMode: continuable
-              - id: tool-subagent-codex
-                name: '@deepseek-ai/dsh-tool-subagent'
-                disabled: true
-                config:
-                  provider: codex
-                  toolName: subagent_codex
-                  backgroundMode: one-shot
-                  maxDepth: provider-managed
-              - id: tool-subagent-claude-code
-                name: '@deepseek-ai/dsh-tool-subagent'
-                disabled: true
-                config:
-                  provider: claude-code
-                  toolName: subagent_claude_code
-                  backgroundMode: one-shot
-                  maxDepth: provider-managed
               - id: workflow-ptc
                 name: '@deepseek-ai/dsh-workflow-ptc'
                 config:
                   provider: spawn
               - id: tool-workflow
                 name: '@deepseek-ai/dsh-tool-workflow'
-              - id: tool-ralph
-                name: '@deepseek-ai/dsh-tool-ralph'
-                disabled: true
-                config:
-                  subagentProvider: spawn
-                  maxRounds: 64
-
-          # ── interaction ────────────────────────────────────────────────────
           - id: tool-ask-user
             name: '@deepseek-ai/dsh-tool-ask-user'
           - id: tool-todo
@@ -247,9 +199,11 @@
               searchTimeoutMs: 60000
           - id: present
             name: '@deepseek-ai/dsh-tool-present'
-
-          # The plugin-development surface is off by default here, exactly as in
-          # 标准模式; flip `disabled` to false to make this mode self-extending too.
+          - id: tool-office
+            name: '@deepseek-ai/dsh-tool-office'
           - id: tool-plugin-manager
             name: '@deepseek-ai/dsh-plugin-manager/tools'
+            disabled: !!js "!ctx.get('profileContext')"
+          - id: tool-plugin-market
+            name: '@deepseek-ai/dsh-plugin-market/tools'
             disabled: true

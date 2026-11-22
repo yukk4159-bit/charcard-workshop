@@ -83,6 +83,28 @@ them — its catalog is just thinner.
 **3. Verify.** The mode appears in the session mode picker. Open a new session in it and
 confirm the card skills are listed in the catalog.
 
+### 0.2.2-rc.5 adaptation (this checkout)
+
+This checkout is re-based on the running DSH `0.2.2-rc.5`; the package version is `1.2.0`:
+
+- The plugin list in `cordis.patch.yml` is **taken row for row from that release's shipped
+  `standard` preset**; only the workshop persona prefix/suffix and
+  `tool-skill.catalogDescriptionMaxLength: 1200` are kept on top. The upstream patch's
+  `tool-ralph`, the `tool-subagent-control/list-agents` subpath, and
+  `modelSelectionSettings` / `backgroundMode` no longer exist in rc.5, so installing it
+  verbatim makes the preset fail to register.
+- The manifest declares `engines.dsh: ">=0.2.2-rc.5 <0.3.0"`, so the plugin manager
+  refuses a DSH release outside that range.
+- The skills are copied into `$DSH_HOME/skills` per step 2 (23 directories), so every
+  session on this machine lists them in its catalog. To scope them to this mode only,
+  point `customSkillDirs` at this checkout instead.
+
+Install command (verified on this machine):
+
+```text
+plugin_manager action=install_bundle target="E:\制卡模式\制卡模式\角色卡工坊"
+```
+
 ## Two card frameworks, and why the distinction matters
 
 `cordis.patch.yml` carries the routing contract. It separates two workflows that are
